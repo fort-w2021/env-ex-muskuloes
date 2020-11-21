@@ -1,0 +1,53 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+# Umgebungen umgibt unglaubliches
+
+Lesen Sie das ["Environments"](https://adv-r.hadley.nz/environments.html)-Kapitel aus *Advanced R Programming* aufmerksam durch.
+
+Bearbeiten Sie die folgenden, teilweise von dort übernommenen Aufgaben:
+
+a) Inwiefern unterscheiden sich in R Listen (`list`) von `environment`s?
+
+  - Every name of an environment must be unique
+  - The names in an environment are not ordered
+  - An environment has a parent
+  - Environments are not copied when modified
+
+b) Wo suchen `ls()` und `rm()` wenn nicht explizit ein `environment` angegeben wird?
+
+  - In the current environment
+
+c) Wo legt `<-` eine (neue) `binding` an? Wo `<<-`?
+
+  - <- binds name to current environment, while
+  - <<- binds name in the parent of the current environment
+
+d) Schreiben sie eine modifizierte Version `anywhere()` der Funktion `where()` aus dem `pryr`-Paket (**nicht** der im Buch definierten Funktion `where`), die *alle* Umgebungen im Suchpfad die eine Variable des gegebenen Namens enthalten in Form einer Liste zurückgibt. Überprüfen Sie ihre Implementation mit `test-env-anywhere.R`.
+
+```{r, where}
+pryr::where
+```
+
+```{r, anywhere}
+anywhere <- function(name, env = parent.frame(), result = list()) {
+  stopifnot(is.character(name), length(name) == 1)
+  env <- pryr:::to_env(env)
+  if (identical(env, emptyenv())) {
+    return(list())
+  }
+  if (identical(env, globalenv())) {
+    result <- c(result, globalenv(), baseenv())
+    return(result)
+  }
+  if (exists(name, env, inherits = FALSE)) {
+    result <- c(result, env)
+  }
+  anywhere(name, parent.env(env), result)
+}
+```
+
+
+*Hinweis:* Die Funktion `to_env()`, die in `pryr::where()` benutzt wird wird nicht von `pryr` exportiert. Sie können die Funktion trotzdem mittels `pryr:::to_env()` aufrufen.
