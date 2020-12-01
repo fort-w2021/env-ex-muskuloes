@@ -32,20 +32,18 @@ pryr::where
 ```
 
 ```{r, anywhere}
-anywhere <- function(name, env = parent.frame(), result = list()) {
+anywhere <- function(name, env = parent.frame()) {
+  checkmate::assert_string(name, min.chars = 1)
   stopifnot(is.character(name), length(name) == 1)
   env <- pryr:::to_env(env)
+  result <- list()
   if (identical(env, emptyenv())) {
     return(list())
-  }
-  if (identical(env, globalenv())) {
-    result <- c(result, globalenv(), baseenv())
-    return(result)
   }
   if (exists(name, env, inherits = FALSE)) {
     result <- c(result, env)
   }
-  anywhere(name, parent.env(env), result)
+  append(result, anywhere(name, parent.env(env)))
 }
 ```
 
